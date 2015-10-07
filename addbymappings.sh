@@ -4,7 +4,7 @@ curl -XPUT 'localhost:9200/netflow/_mappings/Bayside' -d '
 "_all" : {"enabled" : false},  
 "_source" : {"enabled" : false},  
 "properties": {  
-    "TimeofEvent": {"type": "date", "format" : "yyyy-MM-dd HH:mm:ss.SSS"},  
+    "TimeofEvent": {"type": "date", "format" : "date_hour_minute_second"},  
     "SourceAddress": {"type": "ip"},  
     "SourcePort": {"type": "integer", "index": "not_analyzed"},  
     "DestinationAddress": {"type": "ip"},  
