@@ -4,10 +4,8 @@ from elasticsearch import Elasticsearch, helpers
 from elasticsearch.helpers import bulk
 from csv import reader
 elasticsearchhost = "192.168.40.50"  #enter in host IP address or use sys.argv to feed in IP
-es=Elasticsearch([{'host':elasticsearchhost}])
-#loc = sys.argv[1]
-loc = 'by'
-csvfile = str("/data/nfsen/csvbackup/now.csv") 
+es=Elasticsearch([{'host':elasticsearchhost}]) #set Elasticsearch Session
+loc = sys.argv[1]
 
 def location(locs):
 	if "by" in locs:
@@ -23,9 +21,11 @@ def location(locs):
 		loctype = "Flushing"
 		router = "FL-XO-Router"	
 	return [loctype,router];
-loctype = location(loc)[0]
-router = location(loc)[1]
-csvfile = str("/data/nfsen/csvbackup/"+loctype+".csv")
+	
+loctype = location(loc)[0] #set location name for elasticsearch index
+router = location(loc)[1]  #set router name nfdump pull
+csvfile = str("/data/nfsen/csvbackup/"+loctype+".csv") #set csv file location - matches saveloc in runnfdump funct
+
 def gettime():
 	timenow = datetime.datetime.now() #find current time
 	timebefore = timenow - datetime.timedelta(minutes=5) #find time five minutes ago
@@ -66,8 +66,8 @@ def export(csvfile,loctype,elasticsearchhost,es):
 	with open(csvfile, 'rb') as file :
 		line = csv.reader(file, delimiter = ',', skipinitialspace = 'True')
 		for row in line : 
-			if len(row[0])== 23:
-				if "M" in row[5]: 
+			if len(row[0])== 23:    #strip seconds to match elasticsearch time format 
+				if "M" in row[5]:      #  strip string from bytes transferred and calculate based on string
 					row51 = row[5].rstrip(' M')
 					row5 = float(row51)*1000000
 				elif "M" in row[6]:
@@ -94,7 +94,7 @@ def export(csvfile,loctype,elasticsearchhost,es):
 		elasticsearch.helpers.bulk(es,actions)
 	return;	
 
-runnfdump(loc,loctype,router);
-time.sleep(7)
-export(csvfile,loctype,elasticsearchhost,es)		
-time.sleep(15)
+runnfdump(loc,loctype,router);     # run runnfdump funct with necessary parameters
+time.sleep(15)   # give time for function to output csv file
+export(csvfile,loctype,elasticsearchhost,es)		#begin import into elasticsearch
+time.sleep(15)       # give time to finish elasticsearch import incase script is set to run again with new parameters
